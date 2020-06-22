@@ -7,6 +7,7 @@ import com.cloudbees.plugins.credentials.common.StandardUsernameCredentials;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.console.HyperlinkNote;
 import hudson.model.Action;
@@ -56,6 +57,7 @@ import jenkins.scm.impl.trait.Selection;
 import org.apache.commons.lang.StringUtils;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.ProxyClientConfig;
 import org.gitlab4j.api.models.GroupProjectsFilter;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.ProjectFilter;
@@ -247,8 +249,12 @@ public class GitLabSCMNavigator extends SCMNavigator {
             String webHookUrl = null;
             if (webHookCredentials != null) {
                 GitLabServer server = GitLabServers.get().findServer(serverName);
-                webhookGitLabApi = new GitLabApi(getServerUrl(server),
-                    webHookCredentials.getToken().getPlainText());
+                ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+                if (proxy == null) {
+                    webhookGitLabApi = new GitLabApi(getServerUrl(server), webHookCredentials.getToken().getPlainText());
+                } else {
+                    webhookGitLabApi = new GitLabApi(getServerUrl(server), webHookCredentials.getToken().getPlainText(), null, ProxyClientConfig.createProxyClientConfig("http://" + proxy.name + ":" + proxy.port));
+                }
                 webHookUrl = GitLabHookCreator.getHookUrl(server, true);
             }
             for (Project p : projects) {

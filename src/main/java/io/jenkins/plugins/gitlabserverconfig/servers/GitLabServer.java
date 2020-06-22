@@ -8,6 +8,7 @@ import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
+import hudson.ProxyConfiguration;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
@@ -25,6 +26,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.ProxyClientConfig;
 import org.gitlab4j.api.models.User;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.DoNotUse;
@@ -273,7 +275,13 @@ public class GitLabServer extends AbstractDescribableImpl<GitLabServer> {
             if (GITLAB_SERVER_URL.equals(serverUrl)) {
                 LOGGER.log(Level.FINEST, String.format("Community version of GitLab: %s", serverUrl));
             }
-            GitLabApi gitLabApi = new GitLabApi(serverUrl, "");
+            ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+            GitLabApi gitLabApi;
+            if (proxy == null) {
+                gitLabApi = new GitLabApi(serverUrl, "");
+            } else {
+                gitLabApi = new GitLabApi(serverUrl, "", null, ProxyClientConfig.createProxyClientConfig("http://" + proxy.name + ":" + proxy.port));
+            }
             try {
                 gitLabApi.getProjectApi().getProjects(1, 1);
                 return FormValidation.ok();
@@ -324,8 +332,16 @@ public class GitLabServer extends AbstractDescribableImpl<GitLabServer> {
             if (credentials != null) {
                 privateToken = credentials.getToken().getPlainText();
             }
+
+            ProxyConfiguration proxy = Jenkins.getInstance().proxy;
             if (privateToken.equals(EMPTY_TOKEN)) {
-                GitLabApi gitLabApi = new GitLabApi(serverUrl, EMPTY_TOKEN);
+                GitLabApi gitLabApi;
+                if (proxy == null) {
+                    gitLabApi = new GitLabApi(serverUrl, EMPTY_TOKEN);
+                } else {
+                    gitLabApi = new GitLabApi(serverUrl, EMPTY_TOKEN, null, ProxyClientConfig.createProxyClientConfig("http://" + proxy.name + ":" + proxy.port));
+                }
+
                 try {
                     /*
                     In order to validate a GitLab Server without personal access token,
@@ -342,8 +358,12 @@ public class GitLabServer extends AbstractDescribableImpl<GitLabServer> {
                             .GitLabServer_credentialsNotResolved(Util.escape(credentialsId)));
                 }
             } else {
-
-                GitLabApi gitLabApi = new GitLabApi(serverUrl, privateToken);
+                GitLabApi gitLabApi;
+                if (proxy == null) {
+                    gitLabApi = new GitLabApi(serverUrl, privateToken);
+                } else {
+                    gitLabApi = new GitLabApi(serverUrl, privateToken, null, ProxyClientConfig.createProxyClientConfig("http://" + proxy.name + ":" + proxy.port));
+                }
                 try {
                     User user = gitLabApi.getUserApi().getCurrentUser();
                     LOGGER.log(Level.FINEST, String

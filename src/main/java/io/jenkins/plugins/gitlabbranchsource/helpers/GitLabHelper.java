@@ -8,6 +8,9 @@ import io.jenkins.plugins.gitlabserverconfig.servers.GitLabServer;
 import io.jenkins.plugins.gitlabserverconfig.servers.GitLabServers;
 import org.eclipse.jgit.annotations.NonNull;
 import org.gitlab4j.api.GitLabApi;
+import jenkins.model.Jenkins;
+import hudson.ProxyConfiguration;
+import org.gitlab4j.api.ProxyClientConfig;
 
 public class GitLabHelper {
 
@@ -16,7 +19,12 @@ public class GitLabHelper {
         if (server != null) {
             PersonalAccessToken credentials = server.getCredentials();
             if (credentials != null) {
-                return new GitLabApi(server.getServerUrl(), credentials.getToken().getPlainText());
+                ProxyConfiguration proxy = Jenkins.getInstance().proxy;
+                if (proxy == null) {
+                    return new GitLabApi(server.getServerUrl(), credentials.getToken().getPlainText());
+                }
+
+                return new GitLabApi(server.getServerUrl(), credentials.getToken().getPlainText(), null, ProxyClientConfig.createProxyClientConfig("http://" + proxy.name + ":" + proxy.port));
             }
             return new GitLabApi(server.getServerUrl(), GitLabServer.EMPTY_TOKEN);
         }
