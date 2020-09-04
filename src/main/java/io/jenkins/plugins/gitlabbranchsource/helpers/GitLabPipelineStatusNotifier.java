@@ -265,6 +265,17 @@ public class GitLabPipelineStatusNotifier {
         }
         status.setName(getStatusName(sourceContext, build, revision));
 
+        // Set id, sha  and ref to allow this to go back to a single MR and fix the forever spinner issue
+        MergeRequestSCMHead head = (MergeRequestSCMHead) revision.getHead();
+        String originName = head.getOriginName();
+        Job job = build.getParent();
+        String buildName = job.getDisplayName();
+        int id = Integer.parseInt(buildName.substring(buildName.lastIndexOf("-") + 1));
+        
+        status.setId(id);
+        status.setSha(hash);
+        status.setRef(originName);
+
         final JobScheduledListener jsl = ExtensionList.lookup(QueueListener.class)
             .get(JobScheduledListener.class);
         if (jsl != null) {
@@ -348,6 +359,16 @@ public class GitLabPipelineStatusNotifier {
                     }
                     status.setName(getStatusName(sourceContext, job, revision));
 
+                    // Set id, sha and ref to allow this to go back to a single MR and fix spinner issue
+                    MergeRequestSCMHead mrHead = (MergeRequestSCMHead) revision.getHead();
+                    String originName = mrHead.getOriginName();
+                    String jobName = job.getDisplayName();
+                    int id = Integer.parseInt(jobName.substring(jobName.lastIndexOf("-") + 1));
+
+                    status.setId(id);
+                    status.setSha(hash);
+                    status.setRef(originName);
+
                     String url;
                     try {
                         url = DisplayURLProvider.get().getJobURL(job);
@@ -373,6 +394,8 @@ public class GitLabPipelineStatusNotifier {
                             // it is our nonce, so remove it
                             resolving.remove(job);
                         }
+                        LOGGER.log(Level.FINE, String.format("Notifiying commit: %s", hash));
+
                         gitLabApi.getCommitsApi().addCommitStatus(
                             source.getProjectPath(),
                             hash,
