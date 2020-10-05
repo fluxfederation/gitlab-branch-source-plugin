@@ -293,6 +293,7 @@ public class GitLabPipelineStatusNotifier {
                 state,
                 status);
             listener.getLogger().format("[GitLab Pipeline Status] Notified%n");
+            LOGGER.log(Level.INFO, String.format("Notifiying MR: %d %s %s", id, hash, originName));
         } catch (GitLabApiException e) {
             if(!e.getMessage().contains(("Cannot transition status"))) {
                 LOGGER.log(Level.WARNING, String.format("Exception caught: %s",e.getMessage()));
@@ -402,6 +403,7 @@ public class GitLabPipelineStatusNotifier {
                             state,
                             status);
                         LOGGER.log(Level.INFO, "{0} Notified", job.getFullName());
+                        LOGGER.log(Level.INFO, String.format("Notifiying MR: %d %s %s", id, hash, originName));
                     } catch (GitLabApiException e) {
                         if(!e.getMessage().contains("Cannot transition status")) {
                             LOGGER.log(Level.WARNING, String.format("Exception caught: %s", e.getMessage()));
