@@ -270,8 +270,8 @@ public class GitLabPipelineStatusNotifier {
         String originName = head.getOriginName();
         Job job = build.getParent();
         String buildName = job.getDisplayName();
-        int id = Integer.parseInt(buildName.substring(buildName.lastIndexOf("-") + 1));
-        
+        int id = Integer.parseInt(head.getId());//Integer.parseInt(buildName.substring(buildName.lastIndexOf("-") + 1));
+
         status.setId(id);
         status.setSha(hash);
         status.setRef(originName);
@@ -363,7 +363,7 @@ public class GitLabPipelineStatusNotifier {
                     MergeRequestSCMHead mrHead = (MergeRequestSCMHead) revision.getHead();
                     String originName = mrHead.getOriginName();
                     String jobName = job.getDisplayName();
-                    int id = Integer.parseInt(jobName.substring(jobName.lastIndexOf("-") + 1));
+                    int id = Integer.parseInt(mrHead.getId());//Integer.parseInt(jobName.substring(jobName.lastIndexOf("-") + 1));
 
                     status.setId(id);
                     status.setSha(hash);
