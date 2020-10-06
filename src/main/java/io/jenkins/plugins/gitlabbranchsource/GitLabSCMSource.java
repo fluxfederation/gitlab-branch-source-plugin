@@ -423,7 +423,7 @@ public class GitLabSCMSource extends AbstractGitSCMSource {
                             : "Untrusted")));
                         for (ChangeRequestCheckoutStrategy strategy : strategies.get(fork)) {
                             if (request.process(new MergeRequestSCMHead(
-                                    mr.getTitle().replaceAll(" ", "_"),
+                                    mr.getTitle().replaceAll(" ", "_").replaceAll("[^a-zA-Z0-9\\s-_]", ""),
                                     mr.getIid(),
                                     new BranchSCMHead(mr.getTargetBranch()),
                                     strategy,
@@ -563,7 +563,6 @@ public class GitLabSCMSource extends AbstractGitSCMSource {
         GitLabSCMSourceContext ctx = new GitLabSCMSourceContext(null, SCMHeadObserver.none()).withTraits(traits);
         String projectUrl = gitlabProject.getWebUrl();
         String name = StringUtils.isBlank(projectName) ? gitlabProject.getNameWithNamespace() : projectName;
-        LOGGER.log(Level.INFO, String.format("GitLabSCMSource project name: %s", projectName));
         result.add(new ObjectMetadataAction(name, gitlabProject.getDescription(), projectUrl));
         String avatarUrl = gitlabProject.getAvatarUrl();
         if (!ctx.projectAvatarDisabled() && StringUtils.isNotBlank(avatarUrl)) {

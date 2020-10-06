@@ -262,8 +262,6 @@ public class GitLabSCMNavigator extends SCMNavigator {
                 String projectPathWithNamespace = p.getPathWithNamespace();
                 String projectOwner = getProjectOwnerFromNamespace(projectPathWithNamespace);
                 String projectName = getProjectName(request.withProjectNamingStrategy(), p);
-                LOGGER.log(Level.INFO, String.format("GitLabSCMNavigator project name: %s", projectName));
-                LOGGER.log(Level.INFO, String.format("GitLabSCMNavigator ProjectNamingStrategy(): %d", request.withProjectNamingStrategy()));
                 getNavigatorProjects().add(projectPathWithNamespace);
                 if (StringUtils.isEmpty(p.getDefaultBranch())) {
                     observer.getListener().getLogger()
