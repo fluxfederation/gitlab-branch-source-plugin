@@ -527,7 +527,6 @@ public class GitLabSCMSource extends AbstractGitSCMSource {
             }
         } catch (GitLabApiException e) {
             LOGGER.log(Level.WARNING, "Exception caught:" + e, e);
-            throw new IOException("Failed to fetch latest heads", e);
         } finally {
             SCMSourceOwner owner = this.getOwner();
             if (owner != null) {
