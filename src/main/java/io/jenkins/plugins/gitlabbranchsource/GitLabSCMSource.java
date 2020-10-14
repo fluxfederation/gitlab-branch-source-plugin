@@ -418,7 +418,17 @@ public class GitLabSCMSource extends AbstractGitSCMSource {
                         } else if (fork) {
                             originProjectPath = forkMrSources.get(mr.getSourceProjectId());
                         }
-                        String targetSha = gitLabApi.getRepositoryApi().getBranch(mr.getTargetProjectId(), mr.getTargetBranch()).getCommit().getId();
+
+                        // For the project scanner to not crash on branch names that don't exist because devs are idiots
+                        String sha = "";
+                        try {
+                            sha = gitLabApi.getRepositoryApi().getBranch(mr.getTargetProjectId(), mr.getTargetBranch()).getCommit().getId();
+                        } catch (GitLabApiException e) {
+                            continue;
+                        }
+
+                        final String targetSha = sha;
+
                         LOGGER.log(Level.FINE, String.format("%s -> %s", originOwner, (request.isMember(originOwner) ? "Trusted"
                             : "Untrusted")));
                         for (ChangeRequestCheckoutStrategy strategy : strategies.get(fork)) {
@@ -527,6 +537,7 @@ public class GitLabSCMSource extends AbstractGitSCMSource {
             }
         } catch (GitLabApiException e) {
             LOGGER.log(Level.WARNING, "Exception caught:" + e, e);
+            throw new IOException("Failed to fetch latest heads", e);
         } finally {
             SCMSourceOwner owner = this.getOwner();
             if (owner != null) {
